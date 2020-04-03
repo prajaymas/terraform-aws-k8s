@@ -1,8 +1,3 @@
-resource "random_id" "cluster_name" {
-  count       = var.enable_amazon ? 1 : 0
-  byte_length = 6
-}
-
 data "aws_availability_zones" "available" {
   count = var.enable_amazon ? 1 : 0
 }
@@ -31,7 +26,7 @@ resource "aws_vpc" "main" {
   tags = map(
     "Project", "eks",
     "ManagedBy", "terraform",
-    "kubernetes.io/cluster/${var.aws_cluster_name}-${random_id.cluster_name[count.index].hex}", "shared",
+    "kubernetes.io/cluster/${var.aws_cluster_name}}", "shared",
   )
 }
 
@@ -45,7 +40,7 @@ resource "aws_subnet" "public" {
   tags = map(
     "Project", "k8s",
     "ManagedBy", "terraform",
-    "kubernetes.io/cluster/${var.aws_cluster_name}-${random_id.cluster_name.*.hex}", "shared"
+    "kubernetes.io/cluster/${var.aws_cluster_name}", "shared"
   )
 }
 
@@ -166,9 +161,8 @@ resource "aws_security_group_rule" "cluster-ingress-workstation-https" {
 resource "aws_eks_cluster" "cluster" {
   count = var.enable_amazon ? 1 : 0
 
-  name     = "${var.aws_cluster_name}-${random_id.cluster_name[count.index].hex}"
+  name     = var.aws_cluster_name
   role_arn = aws_iam_role.cluster.*.arn
-  #version = var.aws_eks_version
 
   vpc_config {
     security_group_ids = [aws_security_group.cluster.*.id]
@@ -186,7 +180,7 @@ resource "aws_eks_cluster" "cluster" {
 resource "aws_iam_role" "node" {
   count = var.enable_amazon ? 1 : 0
 
-  name = "${var.aws_cluster_name}-node"
+  name = "${var.aws_cluster_name}.${var.aws_node_iam}"
 
   assume_role_policy = <<POLICY
 {
@@ -250,7 +244,7 @@ resource "aws_security_group" "node" {
   tags = map(
     "Project", "k8s",
     "ManagedBy", "terraform",
-    "kubernetes.io/cluster/${var.aws_cluster_name}-${random_id.cluster_name[count.index].hex}", "owned",
+    "kubernetes.io/cluster/${var.aws_cluster_name}}", "owned",
   )
 }
 
@@ -301,7 +295,7 @@ locals {
   demo-node-userdata = <<USERDATA
 #!/bin/bash
 set -o xtrace
-/etc/eks/bootstrap.sh --apiserver-endpoint '${aws_eks_cluster.cluster.*.endpoint}' --b64-cluster-ca '${aws_eks_cluster.cluster.*.certificate_authority.0.data}' '${var.aws_cluster_name}-${random_id.cluster_name.*.hex}'
+/etc/eks/bootstrap.sh --apiserver-endpoint 'aws_eks_cluster.cluster.endpoint' --b64-cluster-ca 'aws_eks_cluster.cluster.certificate_authority.0.data' 'var.aws_cluster_name'
 USERDATA
 }
 
@@ -343,7 +337,7 @@ resource "aws_autoscaling_group" "asg" {
     propagate_at_launch = true
   }
   tag {
-    key                 = "kubernetes.io/cluster/${var.aws_cluster_name}-${random_id.cluster_name[count.index].hex}"
+    key                 = "kubernetes.io/cluster/${var.aws_cluster_name}}"
     value               = "owned"
     propagate_at_launch = true
   }
@@ -365,7 +359,7 @@ metadata:
   namespace: kube-system
 data:
   mapRoles: |
-    - rolearn: ${aws_iam_role.node.*.arn}
+    - rolearn: aws_iam_role.node.*.arn
       username: system:node:{{EC2PrivateDNSName}}
       groups:
         - system:bootstrappers
@@ -376,8 +370,8 @@ CONFIGMAPAWSAUTH
 apiVersion: v1
 clusters:
 - cluster:
-    server: ${aws_eks_cluster.cluster.*.endpoint}
-    certificate-authority-data: ${aws_eks_cluster.cluster.*.certificate_authority.0.data}
+    server: aws_eks_cluster.cluster.endpoint
+    certificate-authority-data: aws_eks_cluster.cluster.certificate_authority.0.data
   name: kubernetes
 contexts:
 - context:
@@ -396,7 +390,7 @@ users:
       args:
         - "token"
         - "-i"
-        - "${var.aws_cluster_name}-${random_id.cluster_name.*.hex}"
+        - "${var.aws_cluster_name}"
 KUBECONFIG
 }
 

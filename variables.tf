@@ -64,4 +64,9 @@ variable "aws_instance_type" {
   default     = "t3.medium"
 }
 
+variable "aws_node_iam" {
+  description = "AWS EKS Worker IAM"
+  type        = string
+  default     = "node"
+}
 
