@@ -295,7 +295,7 @@ locals {
   demo-node-userdata = <<USERDATA
 #!/bin/bash
 set -o xtrace
-/etc/eks/bootstrap.sh --apiserver-endpoint 'aws_eks_cluster.cluster.endpoint' --b64-cluster-ca 'aws_eks_cluster.cluster.certificate_authority.0.data' 'var.aws_cluster_name'
+/etc/eks/bootstrap.sh --apiserver-endpoint 'aws_eks_cluster.cluster.0.endpoint' --b64-cluster-ca 'aws_eks_cluster.cluster.0.certificate_authority.0.data' 'var.aws_cluster_name'
 USERDATA
 }
 
@@ -370,8 +370,8 @@ CONFIGMAPAWSAUTH
 apiVersion: v1
 clusters:
 - cluster:
-    server: aws_eks_cluster.cluster.endpoint
-    certificate-authority-data: aws_eks_cluster.cluster.certificate_authority.0.data
+    server: aws_eks_cluster.cluster.0.endpoint
+    certificate-authority-data: aws_eks_cluster.cluster.0.certificate_authority.0.data
   name: kubernetes
 contexts:
 - context:
@@ -390,7 +390,7 @@ users:
       args:
         - "token"
         - "-i"
-        - "${var.aws_cluster_name}"
+        - var.aws_cluster_name
 KUBECONFIG
 }
 
@@ -425,14 +425,14 @@ EOF
   depends_on = [local_file.eks_config_map_aws_auth]
 }
 
-resource "null_resource" "apply_kube_configmap" {
-  count = var.enable_amazon ? 1 : 0
-  provisioner "local-exec" {
-    command = "kubectl apply -f ${path.module}/aws_config_map_aws_auth"
-    environment = {
-      KUBECONFIG = "${path.module}/kubeconfig_aws"
-    }
-  }
-
-  depends_on = [null_resource.aws_iam_authenticator]
-}
+#resource "null_resource" "apply_kube_configmap" {
+#  count = var.enable_amazon ? 1 : 0
+#  provisioner "local-exec" {
+#    command = "kubectl apply -f ${path.module}/aws_config_map_aws_auth"
+#    environment = {
+#      KUBECONFIG = "${path.module}/kubeconfig_aws"
+#    }
+#  }
+#
+#  depends_on = [null_resource.aws_iam_authenticator]
+#}
