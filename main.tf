@@ -414,12 +414,7 @@ resource "null_resource" "aws_iam_authenticator" {
   count = var.enable_amazon ? 1 : 0
   provisioner "local-exec" {
     command = <<EOF
-#!/bin/bash
-if [ \"$(uname)\" == \"Darwin\" ]; \
-  then curl -o aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.15.10/2020-02-22/bin/darwin/amd64/aws-iam-authenticator; \
-elif [ \"$(expr substr $(uname -s) 1 5)\" == \"Linux\" ]; \
-  then curl -o aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.15.10/2020-02-22/bin/linux/amd64/aws-iam-authenticator; \
-fi; \
+curl -o aws-iam-authenticator https://amazon-eks.s3-us-west-2.amazonaws.com/1.12.7/2019-03-27/bin/linux/amd64/aws-iam-authenticator
 chmod +x ./aws-iam-authenticator; \
 mkdir -p $HOME/bin && \
 cp ./aws-iam-authenticator $HOME/bin/aws-iam-authenticator && \
