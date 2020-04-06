@@ -414,7 +414,11 @@ resource "null_resource" "aws_iam_authenticator" {
   count = var.enable_amazon ? 1 : 0
   provisioner "local-exec" {
     command = <<EOF
-curl -o aws-iam-authenticator https://amazon-eks.s3-us-west-2.amazonaws.com/1.12.7/2019-03-27/bin/linux/amd64/aws-iam-authenticator
+if [ \"$(uname)\" == \"Darwin\" ]; \
+  then curl -o aws-iam-authenticator https://amazon-eks.s3-us-west-2.amazonaws.com/1.13.7/2019-06-11/bin/darwin/amd64/aws-iam-authenticator; \
+elif [ \"$(expr substr $(uname -s) 1 5)\" == \"Linux\" ]; \
+  then curl -o aws-iam-authenticator https://amazon-eks.s3-us-west-2.amazonaws.com/1.12.7/2019-03-27/bin/linux/amd64/aws-iam-authenticator; \
+fi; \
 chmod +x ./aws-iam-authenticator; \
 mkdir -p $HOME/bin && \
 cp ./aws-iam-authenticator $HOME/bin/aws-iam-authenticator && \
@@ -436,3 +440,30 @@ resource "null_resource" "apply_kube_configmap" {
 
   depends_on = [null_resource.aws_iam_authenticator]
 }
+
+#resource "null_resource" "aws_iam_authenticator" {
+#  count = var.enable_amazon ? 1 : 0
+#  provisioner "local-exec" {
+#    command = <<EOF
+#curl -o aws-iam-authenticator https://amazon-eks.s3-us-west-2.amazonaws.com/1.12.7/2019-03-27/bin/linux/amd64/aws-iam-authenticator
+#chmod +x ./aws-iam-authenticator; \
+#mkdir -p $HOME/bin && \
+#cp ./aws-iam-authenticator $HOME/bin/aws-iam-authenticator && \
+#export PATH=$HOME/bin:$PATH
+#EOF
+#  }
+#
+#  depends_on = [local_file.eks_config_map_aws_auth]
+#}
+
+#resource "null_resource" "apply_kube_configmap" {
+#  count = var.enable_amazon ? 1 : 0
+#  provisioner "local-exec" {
+#    command = "kubectl apply -f ${path.module}/aws_config_map_aws_auth"
+#    environment = {
+#      KUBECONFIG = "${path.module}/kubeconfig_aws"
+#    }
+#  }
+#
+#  depends_on = [null_resource.aws_iam_authenticator]
+#}
