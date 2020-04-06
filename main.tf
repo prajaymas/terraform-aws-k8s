@@ -432,7 +432,7 @@ EOF
 resource "null_resource" "apply_kube_configmap" {
   count = var.enable_amazon ? 1 : 0
   provisioner "local-exec" {
-    command = "kubectl apply -f ${path.module}/aws_config_map_aws_auth"
+    command = "kubectl apply -f ${path.module}/kubeconfig_aws"
     environment = {
       KUBECONFIG = "${path.module}/kubeconfig_aws"
     }
