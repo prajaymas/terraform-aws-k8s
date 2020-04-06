@@ -425,14 +425,14 @@ EOF
   depends_on = [local_file.eks_config_map_aws_auth]
 }
 
-#resource "null_resource" "apply_kube_configmap" {
-#  count = var.enable_amazon ? 1 : 0
-#  provisioner "local-exec" {
-#    command = "kubectl apply -f ${path.module}/aws_config_map_aws_auth"
-#    environment = {
-#      KUBECONFIG = "${path.module}/kubeconfig_aws"
-#    }
-#  }
-#
-#  depends_on = [null_resource.aws_iam_authenticator]
-#}
+resource "null_resource" "apply_kube_configmap" {
+  count = var.enable_amazon ? 1 : 0
+  provisioner "local-exec" {
+    command = "kubectl apply -f ${path.module}/aws_config_map_aws_auth"
+    environment = {
+      KUBECONFIG = "${path.module}/kubeconfig_aws"
+    }
+  }
+
+  depends_on = [null_resource.aws_iam_authenticator]
+}
