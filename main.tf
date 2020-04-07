@@ -295,7 +295,7 @@ locals {
   demo-node-userdata = <<USERDATA
 #!/bin/bash
 set -o xtrace
-/etc/eks/bootstrap.sh --apiserver-endpoint 'aws_eks_cluster.cluster.0.endpoint' --b64-cluster-ca 'aws_eks_cluster.cluster.0.certificate_authority.0.data' 'var.aws_cluster_name'
+/etc/eks/bootstrap.sh 'var.aws_cluster_name'
 USERDATA
 }
 
