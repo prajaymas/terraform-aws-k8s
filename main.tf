@@ -22,6 +22,7 @@ data "aws_ami" "eks-worker" {
 resource "aws_vpc" "main" {
   count      = var.enable_amazon ? 1 : 0
   cidr_block = var.aws_cidr_block
+  enable_dns_hostnames = true
 
   tags = map(
     "Project", "eks",
