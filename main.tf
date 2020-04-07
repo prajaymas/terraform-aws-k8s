@@ -26,7 +26,7 @@ resource "aws_vpc" "main" {
   tags = map(
     "Project", "eks",
     "ManagedBy", "terraform",
-    "kubernetes.io/cluster/${var.aws_cluster_name}}", "shared",
+    "kubernetes.io/cluster/var.aws_cluster_name", "shared",
   )
 }
 
@@ -40,7 +40,7 @@ resource "aws_subnet" "public" {
   tags = map(
     "Project", "k8s",
     "ManagedBy", "terraform",
-    "kubernetes.io/cluster/${var.aws_cluster_name}", "shared"
+    "kubernetes.io/cluster/var.aws_cluster_name", "shared"
   )
 }
 
@@ -244,7 +244,7 @@ resource "aws_security_group" "node" {
   tags = map(
     "Project", "k8s",
     "ManagedBy", "terraform",
-    "kubernetes.io/cluster/${var.aws_cluster_name}}", "owned",
+    "kubernetes.io/cluster/var.aws_cluster_name", "owned",
   )
 }
 
@@ -337,7 +337,7 @@ resource "aws_autoscaling_group" "asg" {
     propagate_at_launch = true
   }
   tag {
-    key                 = "kubernetes.io/cluster/${var.aws_cluster_name}}"
+    key                 = "kubernetes.io/cluster/var.aws_cluster_name"
     value               = "owned"
     propagate_at_launch = true
   }
